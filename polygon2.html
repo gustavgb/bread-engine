@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+  <canvas id="can"></canvas><br />
+  <input value="add point" onclick="addPoint()" type="button" />
+  <span id="msg"></span>
+
+  <script src="build/engine.js"></script>
+<script>
+
+  const canvas = document.getElementById('can');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = 600;
+  canvas.height = 450;
+
+  let states = [];
+
+  const collision = BREAD.collision.utils,
+        triangulation = BREAD.collision.triangulation,
+        Vector = BREAD.Vector,
+        Path = BREAD.Path;
+  
+  // Polygon class
+  class Polygon {
+    constructor(points) {
+      this.points = points;
+      
+      const r = Math.floor(Math.random()*255);
+      const g = Math.floor(Math.random()*255);
+      const b = Math.floor(Math.random()*255);
+      
+      this.color = `rgba(${r}, ${g}, ${b}, 0.2)`;
+    }
+  }
+  
+  let update = true;
+  class Bounds {
+    constructor(points) {
+      this.path = new Path(points);
+      this.polygon = new Polygon(points);
+      this.groups = [this.path];
+      this.polygons = [];
+      this.updatePolygons();
+    }
+
+    get points() {
+      return this.path.points;
+    }
+    
+    updatePolygons() {
+      this.polygon = new Polygon(this.points);
+      this.groups = triangulation.triangulate(this.path);
+      this.polygons = this.groups.map(path => new Polygon(path.points));
+    }
+  }
+  
+  /*const testPoints = [
+    [100, 100],
+    [250, 200],
+    [350, 200],
+    [500, 150],
+    [400, 350],
+    [400, 400],
+    [300, 280],
+    [200, 270],
+    [150, 300],
+  ];*/
+
+  function parsePoints(points) {
+    const newPoints = [];
+
+    points.forEach(point => {
+      newPoints.push(new Vector(point[0], point[1]));
+    });
+
+    return newPoints;
+  }
+  
+  const testPoints = parsePoints(JSON.parse('[[94,104],[250,200],[360,128],[500,150],[400,316],[400,400],[276,304],[204,305],[192,377],[109,345],[84,309],[32,149],[102,28],[384,36],[176,68],[380,77],[229,122],[168,110]]'));
+  //const testPoints = JSON.parse('[[100,100],[230,231],[290,251],[102,315],[227,250],[110,207]]');
+  
+  let bounds = new Bounds(testPoints);
+  
+  function render(){
+    requestAnimationFrame(render);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Render polygons
+    bounds.polygons.forEach(polygon => {
+      ctx.beginPath();
+      polygon.points.forEach((point, i) => {
+        ctx[i > 0 ? 'lineTo' : 'moveTo'](point.x, point.y);
+      })
+      ctx.lineTo(polygon.points[0].x, polygon.points[0].y);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = polygon.color;
+      ctx.fill();
+    });
+    
+    
+    ctx.beginPath();
+    bounds.polygon.points.forEach((point, i) => {
+      ctx[i > 0 ? 'lineTo' : 'moveTo'](point.x, point.y);
+    })
+    ctx.lineTo(bounds.polygon.points[0].x, bounds.polygon.points[0].y);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    
+    if (selectedPoint !== -1) {
+      bounds.points[selectedPoint].x = mouseX;
+      bounds.points[selectedPoint].y = mouseY;
+      
+      bounds.updatePolygons();
+    }
+  }
+  
+  window.onload = render;
+  
+  var selectedPoint = -1;
+  var mouseX = 0;
+  var mouseY = 0;
+
+  window.addEventListener('mousedown', e => {
+    bounds.points.forEach((point, index) => {
+      if (
+        Math.abs(point.x - e.clientX) < 10
+        && Math.abs(point.y - e.clientY) < 10
+      ) {
+        selectedPoint = index;
+      }
+    });
+  }, false);
+
+  window.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  })
+
+  window.addEventListener('mouseup', () => {
+    selectedPoint = -1;
+    bounds.updatePolygons();
+  })
+  
+  function addPoint() {
+    bounds.points.push([
+      Math.random()*(canvas.width - 100) + 50,
+      Math.random()*(canvas.height - 100) + 50,
+    ]);
+    bounds.updatePolygons();
+  }
+
+
+</script>
+</body>
+</html>

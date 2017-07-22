@@ -1,0 +1,26 @@
+{
+  "name": "bread_engine",
+  "version": "1.0.0",
+  "description": "best game engine ever",
+  "main": "webpack.config.js",
+  "scripts": {
+    "watch-core": "webpack --watch --progress --colors",
+    "build-core": "webpack",
+    "start-server": "python ./runserver.py",
+    "start": "run-p start-server watch-core"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "npm-run-all": "^4.0.2",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "eslint": "^4.2.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.1.0",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1"
+  }
+}

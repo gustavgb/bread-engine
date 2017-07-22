@@ -1,0 +1,99 @@
+<html>
+  <head>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+<body>
+<canvas id="can"></canvas>
+<script src="build/engine.js"></script>
+<script>
+
+const canvas = document.getElementById('can');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+
+const Vector = BREAD.Vector,
+      collision = BREAD.math.collision;
+
+const lines = [];
+
+function addLine(x1, y1, x2, y2) {
+  lines.push(new Vector(x1, y1, x2, y2));
+}
+
+addLine(100, 100, 200, 200);
+addLine(100, 200, 300, 100);
+
+function render() {
+  requestAnimationFrame(render);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  lines.forEach((line, i) => {
+    ctx.beginPath();
+    ctx.moveTo(line.x, line.y);
+    ctx.lineTo(line.z, line.w);
+    ctx.stroke();
+
+    if (i === selectedPoint) {
+      if (isEnd) {
+        line.z = mouseX;
+        line.w = mouseY;
+      } else {
+        line.x = mouseX;
+        line.y = mouseY;
+      }
+    }
+  });
+
+  if (lines.length > 1) {
+    const col = collision.detectLineCollision(lines[0], lines[1]);
+    if (col !== false) {
+      const x = col.x, y = col.y;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, 2*Math.PI,false);
+      ctx.fill();
+    }
+  }
+}
+
+window.onload = render;
+
+function collideWithPoint(x1, y1, x2, y2, dist) {
+  const d = dist || 10;
+
+  return Math.abs(x1 - x2) < d && Math.abs(y1 - y2) < d;
+}
+
+let selectedPoint = -1;
+let isEnd = false;
+window.addEventListener('mousedown', e => {
+  lines.forEach((line, index) => {
+    if (collideWithPoint(e.clientX, e.clientY, line.x, line.y)) {
+      selectedPoint = index;
+      isEnd = false;
+    } else if (collideWithPoint(e.clientX, e.clientY, line.z, line.w)) {
+      selectedPoint = index;
+      isEnd = true;
+    }
+  });
+});
+
+window.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+})
+
+window.addEventListener('mouseup', () => {
+  selectedPoint = -1;
+})
+
+</script>
+
+</body>
+
+</html>

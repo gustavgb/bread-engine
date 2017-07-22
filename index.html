@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <script src="build/engine.js"></script>
+    
+    <script>
+      
+      const renderer = PIXI.autoDetectRenderer(800, 600, { backgroundColor: '0xFFFFFF' });
+      
+      document.body.appendChild(renderer.view);
+      
+      const Engine = BREAD.Engine,
+            Module = BREAD.Module,
+            World = BREAD.world.World,
+            loader = BREAD.imageLoader,
+            Entity = BREAD.world.Entity,
+            Shape = BREAD.collision.Shape,
+            Terrain = BREAD.collision.Terrain,
+            Polygon = BREAD.collision.Polygon,
+            Vector = BREAD.Vector,
+            Path = BREAD.Path;
+      
+      const game = new Engine(renderer);
+      
+      const world = new World();
+      
+      game.addModule(world);
+
+      const terrain = new Terrain([[
+        new Vector(100, 400),
+        new Vector(400, 500),
+        new Vector(700, 400),
+      ]]);
+
+      const points = [
+        new PIXI.Point(100, 400),
+        new PIXI.Point(400, 500),
+        new PIXI.Point(700, 400),
+        new PIXI.Point(700, 600),
+        new PIXI.Point(100, 600),
+      ];
+
+      const ground = new PIXI.Graphics();
+      ground.beginFill('0x000000');
+      ground.drawPolygon(points);
+      ground.endFill();
+      game.addDisplayObject(ground);
+
+      let player;
+      function onload(getTexture) {
+        player = new Entity(getTexture('drake'), 150, 300);
+        player.terrain = terrain;
+
+        world.addObject(player);
+      }
+
+      loader.onload = onload;
+
+      loader.load([
+        {path: 'drake.png', name: 'drake'},
+      ]);
+      
+      game.start();
+      
+    </script>
+    
+  </body>
+  
+</html>
